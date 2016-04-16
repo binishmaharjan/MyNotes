@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#e3e99bbe"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+
+    <Button
+        android:id="@+id/add_cancel"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_alignBottom="@+id/add_note"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/add_note"
+        android:layout_gravity="right"
+        android:background="@drawable/ic_action_cancel" />
+
+    <EditText
+        android:id="@+id/add_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/edit_text_background"
+        android:inputType="textVisiblePassword"
+        android:textColor="#000"
+        android:hint="Title"
+        android:padding="10dp"
+        />
+
+    <EditText
+        android:id="@+id/add_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/edit_text_background"
+        android:textColor="#000"
+        android:gravity="top"
+        android:padding="10dp"/>
+
+    <Button
+        android:id="@+id/add_add"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/add_description"
+        android:layout_centerHorizontal="true"
+
+        android:layout_gravity="center"
+        android:background="@drawable/btn_background"
+        android:paddingBottom="10dp"
+        android:paddingLeft="40dp"
+        android:paddingRight="40dp"
+        android:paddingTop="10dp"
+        android:text="Add a Note"
+        android:textAllCaps="false"
+        android:textColor="@color/btn_color"
+        android:textSize="20sp"
+        android:typeface="serif" />
+
+
+</LinearLayout>

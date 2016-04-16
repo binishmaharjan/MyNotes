@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Button xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/footer_add_add"
+    android:layout_width="match_parent"
+
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="128dp"
+    android:layout_marginLeft="100dp"
+    android:layout_marginRight="100dp"
+    android:layout_marginTop="128dp"
+    android:background="@drawable/btn_background"
+    android:text="Add a Note"
+    android:textAllCaps="false"
+    android:textColor="@color/btn_color"
+    android:textSize="20sp"
+    android:typeface="serif" />

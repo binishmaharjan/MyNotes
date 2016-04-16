@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/empty_view_logo"
+        android:src="@drawable/logo"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="168dp"
+        android:layout_marginBottom="84dp"
+        />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/empty_view_logo"
+        android:layout_centerHorizontal="true"
+        android:text="Add a Note"
+        android:textAllCaps="false"
+        android:layout_margin="84dp"
+        android:paddingLeft="40dp"
+        android:paddingRight="40dp"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp"
+        android:textSize="20sp"
+        android:textColor="@color/btn_color"
+        android:typeface="serif"
+        android:background="@drawable/btn_background"
+        android:id="@+id/empty_view_add"/>
+
+    
+
+</RelativeLayout>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:background="@drawable/single_row_background">
+
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:id="@+id/row_reminder"
+        android:src="@drawable/ic_action_alarm_off"
+        android:background="@null" />
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:id="@+id/row_password"
+        android:src="@drawable/ic_action_shield_off"
+        android:background="@null"
+        android:layout_marginLeft="10dp"/>
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:id="@+id/row_title"
+        android:paddingLeft="22dp"
+        android:paddingRight="22dp"
+        android:text="Hello World"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:layout_gravity="center"/>
+
+
+
+</LinearLayout>
