@@ -1,6 +1,8 @@
 package com.binish.legenddark.mynotes.Adapters;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.binish.legenddark.mynotes.Database.Note;
 import com.binish.legenddark.mynotes.R;
@@ -26,6 +29,7 @@ public class AdapterNote extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     ButtonListener mAddListener;
     ClickedDialogListener mItemClickedListener;
     Realm mRealm;
+    Context mContext;
 
     public void update(RealmResults result) {
         mResults = result;
@@ -75,7 +79,8 @@ public class AdapterNote extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
         if( holder instanceof NoteHolder){
             NoteHolder noteHolder = (NoteHolder) holder;
             Note note = (Note) mResults.get(position);
-            noteHolder.mTitle.setText(note.getmTitle());
+            noteHolder.setTitle(note.getmTitle());
+            noteHolder.setSecurityIcon(note.isHasPassword());
         }
 
     }
@@ -110,14 +115,33 @@ public class AdapterNote extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
     }
 
+    public void setPasswordFromAdpater(int position, String password) {
+        mRealm.beginTransaction();
+        mResults.get(position).setHasPassword(true);
+        mResults.get(position).setmPassword(password);
+        mRealm.commitTransaction();
+        Toast.makeText(mContext, "Password is set", Toast.LENGTH_SHORT).show();
+        notifyDataSetChanged();
+    }
+
+    public void removePasswordFromAdapter(int postion) {
+        mRealm.beginTransaction();
+        mResults.get(postion).setHasPassword(false);
+        mRealm.commitTransaction();
+        Toast.makeText(mContext, "Password removed", Toast.LENGTH_SHORT).show();
+        notifyDataSetChanged();
+    }
+
     class NoteHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         TextView mTitle;
         ImageView mAlram;
         ImageView mPassword;
 
+
         public NoteHolder(View itemView) {
             super(itemView);
+            mContext = itemView.getContext();
             mTitle = (TextView) itemView.findViewById(R.id.row_title);
             mAlram = (ImageView) itemView.findViewById(R.id.row_reminder);
             mPassword = (ImageView) itemView.findViewById(R.id.row_password);
@@ -128,7 +152,22 @@ public class AdapterNote extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
         @Override
         public void onClick(View v) {
-            mItemClickedListener.onEachItemClicked(getAdapterPosition(),v);
+            mItemClickedListener.onEachItemClicked(getAdapterPosition(), v);
+        }
+
+        public void setTitle(String s) {
+            mTitle.setText(s);
+        }
+
+        public void setSecurityIcon(boolean hasPassword) {
+            Drawable drawable;
+            if (hasPassword){
+               drawable =  ContextCompat.getDrawable(mContext,R.drawable.ic_action_shield);
+            }else{
+                drawable =ContextCompat.getDrawable(mContext,R.drawable.ic_action_shield_off);
+            }
+            mPassword.setImageDrawable(drawable);
+
         }
     }
 

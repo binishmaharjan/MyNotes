@@ -9,14 +9,20 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.binish.legenddark.mynotes.Adapters.AdapterNote;
 import com.binish.legenddark.mynotes.Adapters.ButtonListener;
 import com.binish.legenddark.mynotes.Adapters.ClickedDialogListener;
+import com.binish.legenddark.mynotes.Adapters.ConfirmPasswordListener;
 import com.binish.legenddark.mynotes.Adapters.Divider;
+import com.binish.legenddark.mynotes.Adapters.PasswordListener;
+import com.binish.legenddark.mynotes.Adapters.RemovePasswordListener;
 import com.binish.legenddark.mynotes.Adapters.SimpleTouchCallBack;
 import com.binish.legenddark.mynotes.Database.Note;
+import com.binish.legenddark.mynotes.Security.ConfirmPassword;
 import com.binish.legenddark.mynotes.Security.Password;
+import com.binish.legenddark.mynotes.Security.RemovePassword;
 import com.binish.legenddark.mynotes.Widget.NoteRecyclerView;
 
 import io.realm.Realm;
@@ -48,50 +54,105 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private ButtonListener mAddListerner =new ButtonListener() {
+    private ButtonListener mAddListerner = new ButtonListener() {
         @Override
         public void add() {
-         showDialog();
+            showDialog();
         }
     };
 
     private ClickedDialogListener mItemClicked = new ClickedDialogListener() {
         @Override
-        public void onEachItemClicked(int position,View view) {
-            showClickedDialog(position,view);
+        public void onEachItemClicked(int position, View view) {
+            showClickedDialog(position, view);
         }
     };
 
+
+    private PasswordListener mPasswordListener = new PasswordListener() {
+        @Override
+        public void setPassword(int position, String password) {
+            Toast.makeText(MainActivity.this, "in the " + position, Toast.LENGTH_SHORT).show();
+            mAdapter.setPasswordFromAdpater(position, password);
+
+        }
+
+    };
+
+    RemovePasswordListener mRemovePasswordListener = new RemovePasswordListener() {
+        @Override
+        public void removePassword(int postion) {
+            mAdapter.removePasswordFromAdapter(postion);
+        }
+    };
+
+
     private void showDialog() {
         DialogAdd dialogAdd = new DialogAdd();
-        dialogAdd.show(getSupportFragmentManager(),"Add");
+        dialogAdd.show(getSupportFragmentManager(), "Add");
     }
 
 
-    private void showClickedDialog(int position,View view){
+    private void showClickedDialog(int position, View view) {
         int viewId = view.getId();
-        switch (viewId){
-            case(R.id.row_title):
-                DialogClicked dialogClicked = new DialogClicked();
-                Bundle bundle = new Bundle();
-                bundle.putInt("POSITION", position);
+        final Bundle bundle = new Bundle();
+        bundle.putInt("POSITION", position);
+        Note note = (Note) mResults.get(position);
+        String title = note.getmTitle();
+        String description = note.getmDescription();
+        bundle.putString("TITLE", title);
+        bundle.putString("DESCRIP", description);
 
-                Note note = (Note) mResults.get(position);
-                String title = note.getmTitle();
-                String description = note.getmDescription();
+        switch (viewId) {
+            case (R.id.row_title):
+                final String passwordForConfirmation = note.getmPassword();
+                if (note.isHasPassword()) {
 
-                bundle.putString("TITLE",title);
-                bundle.putString("DESCRIP",description);
+                    ConfirmPasswordListener mConfirmPasswordListener = new ConfirmPasswordListener() {
+                        @Override
+                        public void confirmPassword(int position, String confirm) {
+                            if (confirm.equals(passwordForConfirmation)) {
+                                DialogClicked dialogClicked = new DialogClicked();
+                                dialogClicked.setArguments(bundle);
+                                dialogClicked.show(getSupportFragmentManager(), "Clicked");
 
-                dialogClicked.setArguments(bundle);
-                dialogClicked.show(getSupportFragmentManager(),"Clicked");
+                            } else {
+                                Toast.makeText(MainActivity.this, "Password doesnot match", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    };
+                    ConfirmPassword confirmPassword = new ConfirmPassword();
+                    confirmPassword.show(getSupportFragmentManager(), "Confirm");
+                    confirmPassword.setArguments(bundle);
+                    confirmPassword.setConfirmPasswordListener(mConfirmPasswordListener);
 
+
+                } else {
+
+                    DialogClicked dialogClicked = new DialogClicked();
+                    dialogClicked.setArguments(bundle);
+                    dialogClicked.show(getSupportFragmentManager(), "Clicked");
+                }
+                Toast.makeText(MainActivity.this, note.getmPassword(), Toast.LENGTH_SHORT).show();
                 break;
             case (R.id.row_reminder):
+
                 break;
             case (R.id.row_password):
-                Password password = new Password();
-                password.show(getSupportFragmentManager(),"Password");
+                if (!note.isHasPassword()) {
+
+                    Password password = new Password();
+                    password.show(getSupportFragmentManager(), "Password");
+                    password.setArguments(bundle);
+                    password.setPasswordListener(mPasswordListener);
+                } else {
+                    RemovePassword removePassword = new RemovePassword();
+                    removePassword.show(getSupportFragmentManager(), "Remove");
+                    removePassword.setArguments(bundle);
+                    removePassword.setRemovePasswordListener(mRemovePasswordListener);
+
+                }
+
                 break;
         }
 
@@ -116,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
 
         LinearLayoutManager manager = new LinearLayoutManager(this);
 
-        mAdapter = new AdapterNote(this,mResults,mRealm);
+        mAdapter = new AdapterNote(this, mResults, mRealm);
         mAdapter.setButtonLisener(mAddListerner);
         mAdapter.setItemClickedListener(mItemClicked);
         mAdapter.setHasStableIds(true);
@@ -129,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.addItemDecoration(new Divider(this, LinearLayoutManager.VERTICAL));
 
 
-        SimpleTouchCallBack callBack =  new SimpleTouchCallBack(mAdapter);
+        SimpleTouchCallBack callBack = new SimpleTouchCallBack(mAdapter);
         ItemTouchHelper helper = new ItemTouchHelper(callBack);
         helper.attachToRecyclerView(mRecyclerView);
     }
@@ -148,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main,menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
