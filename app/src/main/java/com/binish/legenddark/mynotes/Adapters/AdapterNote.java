@@ -1,7 +1,9 @@
 package com.binish.legenddark.mynotes.Adapters;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -13,7 +15,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.binish.legenddark.mynotes.Database.Note;
+import com.binish.legenddark.mynotes.MainActivity;
 import com.binish.legenddark.mynotes.R;
+import com.binish.legenddark.mynotes.Security.ConfirmPassword;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -30,6 +34,7 @@ public class AdapterNote extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
     ClickedDialogListener mItemClickedListener;
     Realm mRealm;
     Context mContext;
+    FragmentManager mFragmentManager;
 
     public void update(RealmResults result) {
         mResults = result;
@@ -54,10 +59,11 @@ public class AdapterNote extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
 
     }
 
-    public AdapterNote(Context context, RealmResults results,Realm realm) {
+    public AdapterNote(Context context, RealmResults results,Realm realm,FragmentManager manager) {
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         update(results);
         mRealm = realm;
+        mFragmentManager = manager;
     }
 
     @Override
@@ -104,21 +110,48 @@ public class AdapterNote extends RecyclerView.Adapter<RecyclerView.ViewHolder> i
         return RecyclerView.NO_ID;
     }
 
+    String masterPassword;
+
+    public void setMasterPassword(String password){
+        masterPassword = password;
+    }
+
     @Override
-    public void onSwipe(int position) {
+
+    public void onSwipe(final int position) {
         if(position < mResults.size()){
-            mRealm.beginTransaction();
-            mResults.get(position).removeFromRealm();
-            mRealm.commitTransaction();
-            notifyItemRemoved(position);
+            if(mResults.get(position).isHasPassword()){
+                ConfirmPasswordListener confirmPasswordListener = new ConfirmPasswordListener() {
+                    @Override
+                    public void confirmPassword(String confirm) {
+                        if(confirm.equals(masterPassword)){
+                            mRealm.beginTransaction();
+                            mResults.get(position).removeFromRealm();
+                            mRealm.commitTransaction();
+                            notifyItemRemoved(position);
+                        }
+
+                    }
+                };
+
+                ConfirmPassword confirmPassword = new ConfirmPassword();
+                confirmPassword.show(mFragmentManager,"Confirm");
+                confirmPassword.setConfirmPasswordListener(confirmPasswordListener);
+            }
+            else{
+                mRealm.beginTransaction();
+                mResults.get(position).removeFromRealm();
+                mRealm.commitTransaction();
+                notifyItemRemoved(position);
+            }
+
         }
 
     }
 
-    public void setPasswordFromAdpater(int position, String password) {
+    public void setPasswordFromAdpater(int position) {
         mRealm.beginTransaction();
         mResults.get(position).setHasPassword(true);
-        mResults.get(position).setmPassword(password);
         mRealm.commitTransaction();
         Toast.makeText(mContext, "Password is set", Toast.LENGTH_SHORT).show();
         notifyDataSetChanged();

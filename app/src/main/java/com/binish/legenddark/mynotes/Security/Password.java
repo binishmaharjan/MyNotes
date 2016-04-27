@@ -67,9 +67,9 @@ public class Password extends DialogFragment {
 
     private void setPassword(String password) {
         Bundle argument = getArguments();
-        if(mListener != null && argument != null){
-            int position = argument.getInt("POSITION");
-            mListener.setPassword(position,password);
+        if(mListener != null ){
+
+            mListener.setPassword(password);
         }
     }
 

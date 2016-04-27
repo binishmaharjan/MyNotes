@@ -1,5 +1,6 @@
 package com.binish.legenddark.mynotes;
 
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,6 +13,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.binish.legenddark.mynotes.Adapters.AdapterNote;
+import com.binish.legenddark.mynotes.Adapters.ApplyPasswordListener;
 import com.binish.legenddark.mynotes.Adapters.ButtonListener;
 import com.binish.legenddark.mynotes.Adapters.ClickedDialogListener;
 import com.binish.legenddark.mynotes.Adapters.ConfirmPasswordListener;
@@ -20,6 +22,7 @@ import com.binish.legenddark.mynotes.Adapters.PasswordListener;
 import com.binish.legenddark.mynotes.Adapters.RemovePasswordListener;
 import com.binish.legenddark.mynotes.Adapters.SimpleTouchCallBack;
 import com.binish.legenddark.mynotes.Database.Note;
+import com.binish.legenddark.mynotes.Security.ApplyPassword;
 import com.binish.legenddark.mynotes.Security.ConfirmPassword;
 import com.binish.legenddark.mynotes.Security.Password;
 import com.binish.legenddark.mynotes.Security.RemovePassword;
@@ -71,10 +74,13 @@ public class MainActivity extends AppCompatActivity {
 
     private PasswordListener mPasswordListener = new PasswordListener() {
         @Override
-        public void setPassword(int position, String password) {
-            Toast.makeText(MainActivity.this, "in the " + position, Toast.LENGTH_SHORT).show();
-            mAdapter.setPasswordFromAdpater(position, password);
-
+        public void setPassword(String password) {
+            SharedPreferences pref = getPreferences(MODE_PRIVATE);
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putString("PASSWORD", password);
+            editor.apply();
+            mAdapter.setMasterPassword(getMasterPassword());
+            Toast.makeText(MainActivity.this, "Done", Toast.LENGTH_SHORT).show();
         }
 
     };
@@ -86,10 +92,25 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    ApplyPasswordListener mApplyPasswordListener = new ApplyPasswordListener() {
+        @Override
+        public void applyPassword(int position) {
+            mAdapter.setPasswordFromAdpater(position);
+        }
+    };
+
 
     private void showDialog() {
         DialogAdd dialogAdd = new DialogAdd();
         dialogAdd.show(getSupportFragmentManager(), "Add");
+    }
+
+    public String getMasterPassword() {
+
+        SharedPreferences pref = getPreferences(MODE_PRIVATE);
+        String mPassword = pref.getString("PASSWORD", "");
+        return mPassword;
+
     }
 
 
@@ -103,15 +124,16 @@ public class MainActivity extends AppCompatActivity {
         bundle.putString("TITLE", title);
         bundle.putString("DESCRIP", description);
 
+
+        final String mPassword = getMasterPassword();
+
         switch (viewId) {
             case (R.id.row_title):
-                final String passwordForConfirmation = note.getmPassword();
                 if (note.isHasPassword()) {
-
                     ConfirmPasswordListener mConfirmPasswordListener = new ConfirmPasswordListener() {
                         @Override
-                        public void confirmPassword(int position, String confirm) {
-                            if (confirm.equals(passwordForConfirmation)) {
+                        public void confirmPassword(String confirm) {
+                            if (confirm.equals(mPassword)) {
                                 DialogClicked dialogClicked = new DialogClicked();
                                 dialogClicked.setArguments(bundle);
                                 dialogClicked.show(getSupportFragmentManager(), "Clicked");
@@ -123,7 +145,6 @@ public class MainActivity extends AppCompatActivity {
                     };
                     ConfirmPassword confirmPassword = new ConfirmPassword();
                     confirmPassword.show(getSupportFragmentManager(), "Confirm");
-                    confirmPassword.setArguments(bundle);
                     confirmPassword.setConfirmPasswordListener(mConfirmPasswordListener);
 
 
@@ -140,16 +161,36 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case (R.id.row_password):
                 if (!note.isHasPassword()) {
+                    if(!getMasterPassword().equals("")){
+                        ApplyPassword applyPassword = new ApplyPassword();
+                        applyPassword.show(getSupportFragmentManager(), "Apply");
+                        applyPassword.setArguments(bundle);
+                        applyPassword.setApplyPasswordListener(mApplyPasswordListener);
 
-                    Password password = new Password();
-                    password.show(getSupportFragmentManager(), "Password");
-                    password.setArguments(bundle);
-                    password.setPasswordListener(mPasswordListener);
+                    }
+                    else{
+                        Toast.makeText(MainActivity.this, "The is no Password Set", Toast.LENGTH_SHORT).show();
+                    }
+                    
                 } else {
-                    RemovePassword removePassword = new RemovePassword();
-                    removePassword.show(getSupportFragmentManager(), "Remove");
-                    removePassword.setArguments(bundle);
-                    removePassword.setRemovePasswordListener(mRemovePasswordListener);
+                    ConfirmPasswordListener mConfirmPasswordListener = new ConfirmPasswordListener() {
+                        @Override
+                        public void confirmPassword(String confirm) {
+                            if (confirm.equals(mPassword)) {
+                                RemovePassword removePassword = new RemovePassword();
+                                removePassword.show(getSupportFragmentManager(), "Remove");
+                                removePassword.setArguments(bundle);
+                                removePassword.setRemovePasswordListener(mRemovePasswordListener);
+
+                            } else {
+                                Toast.makeText(MainActivity.this, "Password doesnot match", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    };
+                    ConfirmPassword confirmPassword = new ConfirmPassword();
+                    confirmPassword.show(getSupportFragmentManager(), "Confirm");
+                    confirmPassword.setConfirmPasswordListener(mConfirmPasswordListener);
+
 
                 }
 
@@ -177,10 +218,12 @@ public class MainActivity extends AppCompatActivity {
 
         LinearLayoutManager manager = new LinearLayoutManager(this);
 
-        mAdapter = new AdapterNote(this, mResults, mRealm);
+        mAdapter = new AdapterNote(this, mResults, mRealm,getSupportFragmentManager());
         mAdapter.setButtonLisener(mAddListerner);
         mAdapter.setItemClickedListener(mItemClicked);
         mAdapter.setHasStableIds(true);
+        mAdapter.setMasterPassword(getMasterPassword());
+
 
         mRecyclerView = (NoteRecyclerView) findViewById(R.id.recycler_view);
         mRecyclerView.setAdapter(mAdapter);
@@ -215,7 +258,37 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        showDialog();
+        if (item.getItemId() == R.id.action_add) {
+            showDialog();
+        }
+        else if (item.getItemId() == R.id.action_set_password) {
+            if (getMasterPassword().equals("")) {
+                Password password = new Password();
+                password.show(getSupportFragmentManager(), "Password");
+                password.setPasswordListener(mPasswordListener);
+
+            } else {
+                ConfirmPasswordListener mConfirmPasswordListener = new ConfirmPasswordListener() {
+                    @Override
+                    public void confirmPassword(String confirm) {
+                        if (confirm.equals(getMasterPassword())) {
+                            Password password = new Password();
+                            password.show(getSupportFragmentManager(), "Password");
+                            password.setPasswordListener(mPasswordListener);
+
+                        } else {
+                            Toast.makeText(MainActivity.this, "Password doesnot match", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                };
+                ConfirmPassword confirmPassword = new ConfirmPassword();
+                confirmPassword.show(getSupportFragmentManager(), "Confirm");
+                confirmPassword.setConfirmPasswordListener(mConfirmPasswordListener);
+
+
+            }
+        }
+
         return super.onOptionsItemSelected(item);
     }
 }

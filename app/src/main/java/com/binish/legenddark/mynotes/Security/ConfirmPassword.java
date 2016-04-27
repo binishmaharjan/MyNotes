@@ -21,10 +21,12 @@ public class ConfirmPassword extends DialogFragment {
     Button mCancel;
     EditText mConfirm;
     private ConfirmPasswordListener mListener;
+    boolean mCheckForConfirmation;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        getDialog().setTitle("Enter Password");
         return inflater.inflate(R.layout.confirm_password_layout,container,false);
     }
 
@@ -45,11 +47,10 @@ public class ConfirmPassword extends DialogFragment {
         mEnter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            Bundle argument = getArguments();
-                if(mListener != null && argument != null){
-                    int position = argument.getInt("POSITION");
+
+                if(mListener != null){
                     String confirm = mConfirm.getText().toString();
-                    mListener.confirmPassword(position,confirm);
+                    mListener.confirmPassword(confirm);
                 }
                 dismiss();
             }
